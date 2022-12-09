@@ -1,0 +1,26 @@
+services:
+  # NGINX を動かす
+  nginx:
+    build: ./docker/nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      NGINX_SERVER_NAME: ${DOMAIN}
+    volumes:
+      - nginx_certs:/etc/ssl/certs/nginx:ro,cached
+    # NGINX の起動条件として「証明書生成処理が正常終了していること」を指定する
+    depends_on:
+      certs:
+        condition: service_completed_successfully
+  # 証明書を生成する
+  certs:
+    build: ./docker/certs
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - nginx_certs:/app:delegated
+
+volumes:
+  # 証明書のファイルはボリュームで共有する
+  nginx_certs:
