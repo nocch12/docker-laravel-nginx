@@ -1,5 +1,12 @@
 services:
-  # NGINX を動かす
+  app:
+    build: 
+      context: ./docker/php
+    volumes:
+      - ../laravel:/var/www/laravel
+      - ./docker/php/php.ini:/usr/local/etc/php/php.ini
+      - ./docker/php/log:/var/log
+      
   nginx:
     build: ./docker/nginx
     ports:
@@ -8,18 +15,21 @@ services:
     environment:
       NGINX_SERVER_NAME: ${DOMAIN}
     volumes:
-      - nginx_certs:/etc/ssl/certs/nginx:ro,cached
+      - ./docker/certs/keys:/etc/ssl/certs/nginx:ro,cached
+      - ./docker/nginx/default.conf.template:/etc/nginx/templates/default.conf.template
+      - ../laravel:/var/www/laravel
     # NGINX の起動条件として「証明書生成処理が正常終了していること」を指定する
     depends_on:
       certs:
         condition: service_completed_successfully
+
   # 証明書を生成する
   certs:
     build: ./docker/certs
     environment:
       DOMAIN: ${DOMAIN}
     volumes:
-      - nginx_certs:/app:delegated
+      - ./docker/certs/keys:/app:delegated
 
 volumes:
   # 証明書のファイルはボリュームで共有する
