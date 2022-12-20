@@ -2,12 +2,16 @@ FROM alpine:latest
 
 WORKDIR /app
 
+ARG DOMAIN
+
+ENV KEY_NAME="domain.key"
+ENV CRT_NAME="signed.crt"
+
 RUN apk update && \
   apk add openssl
 
-CMD openssl req -x509 -newkey rsa:4096 -sha256 -days 365 -nodes \
-  -keyout domain.key \
-  -out signed.crt \
-  -subj "/CN=${DOMAIN}" \
-  -addext "subjectAltName=DNS:${DOMAIN}" \
-  -addext "extendedKeyUsage=serverAuth"
+COPY ./docker/certs/crt.sh /shell/
+
+RUN chmod 777 -R /shell/
+
+CMD /shell/crt.sh

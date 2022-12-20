@@ -50,7 +50,9 @@ services:
 
   # 証明書を生成する
   certs:
-    build: ./docker/certs
+    build: 
+      context: .
+      dockerfile: ./docker/certs/Dockerfile
     environment:
       - DOMAIN=${DOMAIN:-my-domain.local}
     volumes:
